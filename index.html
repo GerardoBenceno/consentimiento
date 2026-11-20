@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Firma de consentimiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: formal, sereno; un documento oficial que se firma, no una app
+   IDEA: la hoja impresa del protocolo, con su renglón de firma
+   PICTURE: el propio formulario y el recuadro de firma, grandes y claros
+   COLOUR and TYPE: blanco papel, tinta casi negra, azul tinta para acciones; Source Serif 4 para el texto, Inter para controles
+   LAYOUT: una sola columna de lectura, texto arriba, datos y firma abajo */
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f3ef,#15171a);--paper:light-dark(#ffffff,#1e2125);--ink:light-dark(#1b1c1e,#e9e8e4);
+--soft:light-dark(#5b5d62,#a6a8ad);--line:light-dark(#d9d7d0,#353940);--accent:light-dark(#1d4f86,#8bb8ef);
+--accent-ink:light-dark(#ffffff,#0f1a28);--warn:light-dark(#a3261b,#ff9b8f);--ok:light-dark(#1f6b3a,#86d3a0)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Inter,system-ui,sans-serif;overflow-x:clip}
+.sheet{max-width:760px;margin:clamp(0px,3vw,32px) auto;background:var(--paper);border:1px solid var(--line);
+padding:clamp(22px,5vw,56px) clamp(18px,5vw,60px)}
+@media(max-width:600px){.sheet{border-inline:0;margin:0}}
+.lang{font-size:13px;color:var(--soft);margin:0 0 18px}
+h1{font:600 clamp(26px,4.4vw,36px)/1.1 "Source Serif 4",Georgia,serif;margin:0 0 14px;text-wrap:balance}
+.intro{font-size:15px;color:var(--soft);margin:0 0 28px;padding-bottom:22px;border-bottom:1px solid var(--line)}
+#texto p,.consent p{font:17px/1.65 "Source Serif 4",Georgia,serif;margin:0 0 16px}
+.consent{margin-top:30px;padding-top:26px;border-top:1px solid var(--line)}
+h2{font:600 20px/1.2 "Source Serif 4",Georgia,serif;margin:0 0 16px}
+label{display:block;font-weight:500;font-size:15px;margin:0 0 6px}
+.hint{font-weight:400;color:var(--soft);font-size:13px}
+input[type=text],input[type=email],input[type=date]{width:100%;font:16px Inter,system-ui,sans-serif;color:var(--ink);
+background:var(--paper);border:1px solid var(--line);border-bottom:2px solid var(--ink);border-radius:4px;padding:11px 12px;min-height:46px}
+input:focus-visible,button:focus-visible,.opt:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.field{margin:0 0 22px}
+.opts{display:grid;gap:10px;margin:8px 0 22px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:6px;padding:12px 14px;cursor:pointer;
+font:16px/1.5 "Source Serif 4",Georgia,serif}
+.opt input{width:22px;height:22px;margin:2px 0 0;flex:none;accent-color:var(--accent)}
+.opt:has(input:checked){border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sigwrap{position:relative;border:1px solid var(--line);border-radius:6px;background:#fff;height:200px;touch-action:none}
+.sigwrap canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+.sigline{position:absolute;left:8%;right:8%;bottom:44px;border-bottom:1px solid #9a9890;pointer-events:none}
+.sigph{position:absolute;left:8%;bottom:18px;font-size:13px;color:#77756e;pointer-events:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:8px 0 22px}
+button{font:500 16px Inter,system-ui,sans-serif;min-height:46px;border-radius:6px;padding:0 18px;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.primary{width:100%;background:var(--accent);color:var(--accent-ink);border:0;font-weight:600;font-size:17px;min-height:54px}
+.primary:disabled{opacity:.55;cursor:wait}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:15px;margin:0 0 22px;cursor:pointer}
+.check input{width:22px;height:22px;flex:none;margin:1px 0 0;accent-color:var(--accent)}
+.msg{font-size:15px;margin:14px 0 0;min-height:1em}
+.msg.err{color:var(--warn)}.msg.ok{color:var(--ok)}
+.done{display:none;margin-top:26px;padding:20px;border:1px solid var(--line);border-radius:8px}
+.done.show{display:block}
+.done h3{font:600 19px/1.25 "Source Serif 4",Georgia,serif;margin:0 0 10px}
+.done ol{margin:0;padding-left:22px}.done li{margin:0 0 6px}
+.wa{width:100%;background:#1a8f4a;color:#fff;border:0;font-weight:600;font-size:17px;min-height:54px;margin:0 0 10px}
+.full{width:100%}
+#fname{overflow-wrap:anywhere}
+.link{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0;min-height:44px;margin-top:8px;font-size:15px}
+#manual{display:none}
+#comprobante{display:none;margin-top:16px}
+#comprobante img{width:100%;border:1px solid var(--line);border-radius:4px;background:#fff}
+.foot{font-size:13px;color:var(--soft);margin:28px 0 0}
+@media(prefers-reduced-motion:no-preference){.done.show{animation:in .35s ease-out}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<main class="sheet">
+  <p class="lang">Idioma: español</p>
+  <h1>Protocolo de consentimiento informado para participar en entrevistas</h1>
+  <p class="intro">Le envía este protocolo Gerardo Yahel Ángeles Reyes. Lea el texto completo y, si está de acuerdo en participar, llene sus datos y firme con el dedo en el recuadro del final. Al terminar se genera un PDF con su firma, que es su copia y que se envía de regreso por WhatsApp desde esta misma página.</p>
+
+  <section id="texto">
+    <p>Apreciable participante:</p>
+    <p>Solicitamos su apoyo en la realización de una investigación conducida por Gerardo Yahel Ángeles Reyes, estudiante de la materia de educación general H1057 De Prometeo a Marvel: cine, mitos y videojuegos, del área de Humanidades y Bellas Artes, del Tecnológico de Monterrey, coordinada por José Manuel Velázquez Hurtado. La investigación tiene como propósito recolectar narraciones orales de carácter tradicional de su localidad para formar al estudiantado en la preservación y apreciación del patrimonio cultural intangible.</p>
+    <p>Usted ha recibido una invitación para participar en calidad de entrevistado(a). Si acepta, se le solicitará responder diversas preguntas en torno a una leyenda local que usted conozca, lo que tomará aproximadamente entre 5 y 15 minutos. La información obtenida será únicamente utilizada para la elaboración de una narrativa multimedia inspirada en narraciones de tipo popular. A fin de poder registrar apropiadamente la información, se solicita su autorización para grabar la conversación. La grabación y las notas de las entrevistas serán almacenadas en un repositorio virtual al que únicamente podrán acceder el (la) estudiante entrevistador(a) y el (la) docente titular de la materia. Al finalizar el curso semestral agosto-diciembre 2026, la información será borrada.</p>
+    <p>Su participación en la investigación es completamente voluntaria. Usted puede interrumpir la misma en cualquier momento, sin que ello genere ningún perjuicio. Se considera que este estudio no implica riesgos para usted. Además, si tuviera alguna consulta sobre la investigación, puede formularla cuando lo estime conveniente, a fin de clarificarla oportunamente.</p>
+    <p>En caso de tener alguna duda sobre la investigación, puede comunicarse al siguiente correo electrónico: A01714849@tec.mx</p>
+  </section>
+
+  <form class="consent" id="form" novalidate>
+    <h2>Consentimiento</h2>
+    <div class="field">
+      <label for="nombre">Nombre completo del (de la) participante</label>
+      <input type="text" id="nombre" autocomplete="name" placeholder="Escriba su nombre completo">
+    </div>
+    <p>Yo, <strong id="eco">(su nombre)</strong>, doy mi consentimiento para participar en el estudio y autorizo que mi información se utilice en las actividades asociadas al mismo.</p>
+    <p>Asimismo, estoy de acuerdo que mi identidad sea tratada de manera (marcar una de las siguientes opciones):</p>
+    <div class="opts" role="radiogroup" aria-label="Tratamiento de la identidad">
+      <label class="opt"><input type="radio" name="identidad" value="declarada" id="op-dec"><span>Declarada, es decir, que en el producto resultante se hará referencia expresa de mi nombre.</span></label>
+      <label class="opt"><input type="radio" name="identidad" value="confidencial" id="op-conf"><span>Confidencial, es decir, que en el producto resultante no se hará ninguna referencia expresa de mi nombre.</span></label>
+    </div>
+    <p>Finalmente, entiendo que recibiré una copia de este protocolo de consentimiento informado.</p>
+
+    <div class="field">
+      <label for="correo">Correo electrónico <span class="hint">(si no tiene, puede dejarlo vacío)</span></label>
+      <input type="email" id="correo" autocomplete="email" inputmode="email" placeholder="nombre@correo.com">
+    </div>
+    <div class="field">
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha">
+    </div>
+
+    <label id="firma-l">Firma</label>
+    <div class="sigwrap" aria-labelledby="firma-l">
+      <div class="sigline"></div><span class="sigph">Firme aquí con el dedo</span>
+      <canvas id="firma"></canvas>
+    </div>
+    <div class="row">
+      <span class="hint">Si se equivoca, borre y vuelva a firmar.</span>
+      <button type="button" class="ghost" id="borrar">Borrar firma</button>
+    </div>
+
+    <label class="check"><input type="checkbox" id="acepto"><span>Leí el protocolo completo y acepto participar en la entrevista.</span></label>
+
+    <button type="submit" class="primary" id="generar">Firmar y generar el PDF</button>
+    <p class="msg" id="msg" role="status"></p>
+  </form>
+
+  <section class="done" id="done">
+    <h3>Su protocolo quedó firmado</h3>
+    <p style="margin:0 0 14px">Falta un paso. Envíe el PDF a Gerardo por WhatsApp y guárdelo también en su teléfono, porque es su copia del protocolo.</p>
+    <button type="button" class="wa" id="compartir">Enviar el PDF por WhatsApp</button>
+    <button type="button" class="ghost full" id="descargar">Descargar el PDF</button>
+    <div id="manual">
+      <p style="margin:14px 0 6px">Si el botón de WhatsApp no aparece o no funciona:</p>
+      <ol>
+        <li>Toque <strong>Descargar el PDF</strong>.</li>
+        <li>Abra el chat de WhatsApp con Gerardo, toque el clip o el botón de adjuntar y elija <strong>Documento</strong>.</li>
+        <li>Busque el archivo <strong id="fname">Consentimiento.pdf</strong> en Descargas y envíelo.</li>
+      </ol>
+    </div>
+    <button type="button" class="link" id="verimg">No puedo descargar el PDF</button>
+    <div id="comprobante">
+      <p class="msg" style="margin:0 0 10px">Tome una captura de pantalla de esta imagen y envíela a Gerardo por WhatsApp.</p>
+      <img id="img" alt="Comprobante del protocolo firmado">
+    </div>
+  </section>
+
+  <p class="foot">Sus datos no se guardan en esta página ni se envían a ningún servidor. El PDF se crea dentro de su teléfono y solo lo recibe quien usted elija.</p>
+</main>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const cv=$('firma'),ctx=cv.getContext('2d');
+let drawing=false,hasInk=false,last=null,strokes=[];
+const today=new Date();
+$('fecha').value=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+
+function size(){
+  const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
+  ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#14213d';ctx.lineWidth=2.4;
+  ctx.clearRect(0,0,r.width,r.height);
+  for(const s of strokes){ctx.beginPath();s.forEach((p,i)=>{const x=p[0]*r.width,y=p[1]*r.height;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});if(s.length===1){ctx.lineTo(s[0][0]*r.width+.1,s[0][1]*r.height)}ctx.stroke()}
+}
+const sizer=new ResizeObserver(size);sizer.observe(cv);
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,r]}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);drawing=true;const[x,y,r]=pos(e);strokes.push([[x,y]]);last=[x,y];
+  ctx.beginPath();ctx.moveTo(x*r.width,y*r.height);ctx.lineTo(x*r.width+.1,y*r.height);ctx.stroke();hasInk=true});
+cv.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const[x,y,r]=pos(e);strokes[strokes.length-1].push([x,y]);
+  ctx.beginPath();ctx.moveTo(last[0]*r.width,last[1]*r.height);ctx.lineTo(x*r.width,y*r.height);ctx.stroke();last=[x,y]});
+['pointerup','pointercancel','pointerleave'].forEach(t=>cv.addEventListener(t,()=>{drawing=false}));
+$('borrar').addEventListener('click',()=>{strokes=[];hasInk=false;size()});
+
+$('nombre').addEventListener('input',()=>{const v=$('nombre').value.trim();$('eco').textContent=v||'(su nombre)'});
+
+function sigImage(){
+  const r=cv.getBoundingClientRect(),W=900,H=Math.round(W*r.height/r.width);
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,W,H);g.strokeStyle='#14213d';g.lineWidth=5;g.lineCap='round';g.lineJoin='round';
+  for(const s of strokes){g.beginPath();s.forEach((p,i)=>{i?g.lineTo(p[0]*W,p[1]*H):g.moveTo(p[0]*W,p[1]*H)});if(s.length===1)g.lineTo(s[0][0]*W+1,s[0][1]*H);g.stroke()}
+  return{url:c.toDataURL('image/png'),ratio:H/W};
+}
+function fechaTxt(){const v=$('fecha').value;if(!v)return'';const[a,m,d]=v.split('-');return d+'/'+m+'/'+a}
+function msg(t,cls){const m=$('msg');m.textContent=t;m.className='msg '+(cls||'')}
+
+function buildPDF(data){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:'mm',format:'letter'});
+  const L=22,R=22,PW=doc.internal.pageSize.getWidth(),PH=doc.internal.pageSize.getHeight(),TW=PW-L-R;let y=20;
+  const need=h=>{if(y+h>PH-18){doc.addPage();y=20}};
+  const para=(t,opt={})=>{doc.setFont('helvetica',opt.bold?'bold':'normal');doc.setFontSize(opt.size||10.5);
+    const lines=doc.splitTextToSize(t,opt.w||TW);const lh=(opt.size||10.5)*0.45;need(lines.length*lh);
+    doc.text(lines,opt.x||L,y,{align:'left'});y+=lines.length*lh+(opt.after??3.2)};
+  para('Idioma: español',{size:9,after:5});
+  para('Protocolo de consentimiento informado para participar en entrevistas',{bold:true,size:14,after:6});
+  document.querySelectorAll('#texto p').forEach(p=>para(p.textContent.trim()));
+  para('Yo, '+data.nombre+', doy mi consentimiento para participar en el estudio y autorizo que mi información se utilice en las actividades asociadas al mismo.');
+  para('Asimismo, estoy de acuerdo que mi identidad sea tratada de manera (marcar una de las siguientes opciones):');
+  const box=(on,t)=>{need(12);doc.setLineWidth(.3);doc.rect(L+1,y-3.4,4,4);if(on){doc.setLineWidth(.6);doc.line(L+1.6,y-2.8,L+4.4,y);doc.line(L+4.4,y-2.8,L+1.6,y)}
+    para(t,{x:L+9,w:TW-9,after:2.6})};
+  box(data.identidad==='declarada','Declarada, es decir, que en el producto resultante se hará referencia expresa de mi nombre.');
+  box(data.identidad==='confidencial','Confidencial, es decir, que en el producto resultante no se hará ninguna referencia expresa de mi nombre.');
+  y+=1.5;para('Finalmente, entiendo que recibiré una copia de este protocolo de consentimiento informado.',{after:6});
+  const c1=TW*0.44,c2=TW*0.34,c3=TW-c1-c2,sigW=c2-6,sigH=Math.min(sigW*data.firma.ratio,22);
+  need(sigH+60);
+  const rowBlock=(nombre,img,fecha,label)=>{const top=y;doc.setFont('helvetica','normal');doc.setFontSize(10.5);
+    doc.text(doc.splitTextToSize(nombre,c1-4),L,top+sigH-2);if(img)doc.addImage(img.url,'PNG',L+c1+3,top,sigW,sigH);doc.text(fecha,L+c1+c2+2,top+sigH-2);
+    y=top+sigH+1;doc.setLineWidth(.3);doc.line(L,y,L+c1-4,y);doc.line(L+c1,y,L+c1+c2-4,y);doc.line(L+c1+c2,y,PW-R,y);
+    doc.setFontSize(8.5);doc.text(label,L,y+4);doc.text('Firma',L+c1,y+4);doc.text('Fecha',L+c1+c2,y+4);y+=11};
+  rowBlock(data.nombre,data.firma,data.fecha,'Nombre completo del (de la) participante');
+  doc.setFontSize(10.5);doc.text('Correo electrónico: '+(data.correo||'n.d.'),L,y);y+=12;
+  sigH>0&&rowBlock('Gerardo Yahel Ángeles Reyes',null,'','Nombre del (de la) estudiante responsable');
+  doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Firmado electrónicamente el '+new Date().toLocaleString('es-MX'),L,PH-10);
+  return doc;
+}
+
+let lastPDF=null;
+function pdfFile(){try{const f=new File([lastPDF.blob],lastPDF.name,{type:'application/pdf'});return navigator.canShare&&navigator.canShare({files:[f]})?f:null}catch(e){return null}}
+function download(){
+  if(!lastPDF)return;
+  const u=URL.createObjectURL(lastPDF.blob),a=document.createElement('a');
+  a.href=u;a.download=lastPDF.name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),60000);
+  msg('Si el PDF se descargó, ahora envíelo a Gerardo por WhatsApp como documento.','ok');
+}
+async function share(){
+  const f=lastPDF&&pdfFile();
+  if(!f){$('manual').style.display='block';download();return}
+  try{await navigator.share({files:[f],title:'Protocolo de consentimiento firmado'});msg('Listo. Si el PDF llegó al chat de Gerardo, ya terminó.','ok')}
+  catch(err){if(!err||err.name!=='AbortError'){$('manual').style.display='block';msg('No se pudo abrir WhatsApp desde aquí. Siga los pasos de abajo.','err')}}
+}
+function fallback(){
+  const W=1000,c=document.createElement('canvas'),d=lastPDF.data,sig=new Image();
+  sig.onload=()=>{const sh=Math.round(560*d.firma.ratio);c.width=W;c.height=520+sh;const g=c.getContext('2d');
+    g.fillStyle='#fff';g.fillRect(0,0,W,c.height);g.fillStyle='#111';g.font='600 30px Georgia,serif';g.fillText('Protocolo de consentimiento firmado',40,64);
+    g.font='22px Arial,sans-serif';const rows=[['Participante',d.nombre],['Identidad',d.identidad==='declarada'?'Declarada':'Confidencial'],['Correo',d.correo||'n.d.'],['Fecha',d.fecha],['Estudiante','Gerardo Yahel Ángeles Reyes'],['Materia','H1057 De Prometeo a Marvel (Gpo 603)']];
+    rows.forEach((r,i)=>{g.fillStyle='#666';g.fillText(r[0],40,120+i*40);g.fillStyle='#111';g.fillText(r[1],230,120+i*40)});
+    g.fillStyle='#666';g.fillText('Firma',40,400);g.drawImage(sig,220,380,560,sh);g.strokeStyle='#999';g.beginPath();g.moveTo(220,380+sh*0.8);g.lineTo(780,380+sh*0.8);g.stroke();
+    $('img').src=c.toDataURL('image/png');$('comprobante').style.display='block';msg('','')};
+  sig.src=d.firma.url;
+}
+
+$('form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const nombre=$('nombre').value.trim().replace(/\s+/g,' '),idn=document.querySelector('input[name=identidad]:checked');
+  if(!nombre){msg('Escriba su nombre completo.','err');$('nombre').focus();return}
+  if(!idn){msg('Elija si su identidad será declarada o confidencial.','err');return}
+  if(!hasInk){msg('Falta su firma en el recuadro.','err');return}
+  if(!$('acepto').checked){msg('Marque la casilla para confirmar que leyó el protocolo y acepta participar.','err');return}
+  if(!window.jspdf){msg('No se pudo cargar el generador de PDF. Revise su conexión a internet y recargue la página.','err');return}
+  const btn=$('generar');btn.disabled=true;msg('Generando el PDF…');
+  try{
+    const data={nombre,identidad:idn.value,correo:$('correo').value.trim(),fecha:fechaTxt(),firma:sigImage()};
+    const doc=buildPDF(data);
+    const safe=nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'');
+    lastPDF={blob:doc.output('blob'),name:'Consentimiento_'+safe+'.pdf',data};
+    $('fname').textContent=lastPDF.name;$('comprobante').style.display='none';
+    const canShare=!!pdfFile();$('compartir').style.display=canShare?'block':'none';$('manual').style.display=canShare?'none':'block';
+    $('done').classList.add('show');msg('','');
+    $('done').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(err){msg('Ocurrió un error al generar el PDF. Intente de nuevo.','err')}
+  finally{btn.disabled=false}
+});
+$('compartir').addEventListener('click',share);
+$('descargar').addEventListener('click',download);
+$('verimg').addEventListener('click',()=>{if(lastPDF)fallback()});
+}
+</script>
+</body>
+</html>
